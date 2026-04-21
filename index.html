@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FamilyTrip AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --green: #1D9E75;
+  --green-light: #E1F5EE;
+  --green-mid: #9FE1CB;
+  --green-dark: #085041;
+  --green-text: #0F6E56;
+  --amber: #F59E0B;
+  --amber-light: #FEF3C7;
+  --bg: #EEF2EE;
+  --surface: #ffffff;
+  --surface2: #F7F9F7;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.13);
+  --text: #111;
+  --text2: #555;
+  --text3: #999;
+  --r: 16px;
+  --r-sm: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem 4rem;
+}
+.phone {
+  width: 390px;
+  background: var(--surface);
+  border-radius: 40px;
+  border: 1px solid var(--border2);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 820px;
+  position: relative;
+}
+.sbar { padding: 16px 24px 4px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.sbar-time { font-size: 13px; font-weight: 800; color: var(--text); }
+.sbar-r { font-size: 11px; color: var(--text3); }
+.hdr { padding: 6px 24px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.hdr-back { font-size: 14px; font-weight: 700; color: var(--green); background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 0; }
+.hdr-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.hdr-step { font-size: 12px; font-weight: 700; color: var(--text3); }
+.content { flex: 1; overflow-y: auto; padding: 20px 24px 130px; }
+.content::-webkit-scrollbar { display: none; }
+.progress-wrap { margin-bottom: 24px; }
+.progress-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+.q { font-size: 22px; font-weight: 900; color: var(--text); line-height: 1.2; margin-bottom: 6px; }
+.q-sub { font-size: 14px; color: var(--text2); margin-bottom: 22px; line-height: 1.5; }
+.opt-list { display: flex; flex-direction: column; gap: 10px; }
+.opt-btn {
+  background: var(--surface); border: 1.5px solid var(--border2);
+  border-radius: var(--r); padding: 15px 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; text-align: left; width: 100%;
+  font-family: inherit; transition: all 0.15s; box-shadow: var(--shadow);
+}
+.opt-btn:hover { border-color: var(--green-mid); background: var(--green-light); }
+.opt-btn.sel { border-color: var(--green); background: var(--green-light); }
+.opt-btn.sel .ol { color: var(--green-dark); }
+.opt-btn.sel .os { color: var(--green-text); }
+.o-icon { font-size: 24px; width: 40px; text-align: center; flex-shrink: 0; }
+.ol { font-size: 15px; font-weight: 800; color: var(--text); display: block; }
+.os { font-size: 12px; color: var(--text2); display: block; margin-top: 2px; line-height: 1.3; }
+.dur-wrap { display: flex; background: var(--surface2); border-radius: var(--r-sm); padding: 4px; gap: 3px; margin-bottom: 16px; flex-wrap: wrap; }
+.dur-pill { flex: 1; min-width: 58px; padding: 9px 4px; border: none; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; background: transparent; color: var(--text3); transition: all 0.15s; text-align: center; }
+.dur-pill.sel { background: var(--surface); color: var(--green-dark); box-shadow: var(--shadow); }
+.dur-desc { background: var(--surface2); border-radius: var(--r-sm); padding: 13px 15px; }
+.dur-desc-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.dur-desc-sub { font-size: 13px; color: var(--text2); line-height: 1.4; }
+.filter-section { margin-bottom: 18px; }
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-chip { padding: 8px 13px; border: 1.5px solid var(--border2); border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text2); background: var(--surface); cursor: pointer; transition: all 0.15s; }
+.filter-chip:hover { border-color: var(--green-mid); color: var(--green-text); }
+.filter-chip.sel { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+.filter-label { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+.slider-wrap { margin-bottom: 18px; }
+.slider-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.slider-val { font-size: 14px; font-weight: 800; color: var(--green-dark); }
+input[type=range] { width: 100%; -webkit-appearance: none; height: 5px; background: linear-gradient(to right, var(--green) 33%, #ddd 33%); border-radius: 3px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--green); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.age-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.age-chip { padding: 8px 13px; border: 1.5px solid var(--border2); border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text2); background: var(--surface); cursor: pointer; transition: all 0.15s; }
+.age-chip.sel { border-color: var(--amber); background: var(--amber-light); color: #92400E; }
+
+/* Location banner */
+.loc-banner { display: flex; align-items: center; gap: 10px; background: var(--green-light); border: 1.5px solid var(--green-mid); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 18px; }
+.loc-icon { font-size: 20px; flex-shrink: 0; }
+.loc-text { font-size: 13px; font-weight: 700; color: var(--green-dark); line-height: 1.3; }
+.loc-sub { font-size: 11px; font-weight: 600; color: var(--green-text); }
+.loc-btn { margin-left: auto; padding: 6px 12px; background: var(--green); color: white; border: none; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; flex-shrink: 0; }
+.loc-banner.detecting { opacity: 0.6; }
+
+.grp-label { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.09em; margin: 18px 0 10px; display: flex; align-items: center; gap: 8px; }
+.grp-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cat-btn { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 12px; cursor: pointer; text-align: left; font-family: inherit; transition: all 0.15s; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); }
+.cat-btn:hover { border-color: var(--green-mid); background: var(--green-light); }
+.cat-btn.sel { border-color: var(--green); background: var(--green-light); }
+.cat-btn.sel .cl { color: var(--green-dark); }
+.cat-btn.sel .cs { color: var(--green-text); }
+.ci { font-size: 20px; flex-shrink: 0; }
+.cl { font-size: 13px; font-weight: 800; color: var(--text); display: block; }
+.cs { font-size: 11px; color: var(--text2); display: block; margin-top: 1px; line-height: 1.3; }
+.freetext-wrap { margin-top: 18px; }
+.freetext-label { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+.freetext { width: 100%; padding: 13px 15px; border: 1.5px solid var(--border2); border-radius: var(--r); font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface); resize: none; outline: none; transition: border-color 0.15s; line-height: 1.5; }
+.freetext:focus { border-color: var(--green); }
+.freetext::placeholder { color: var(--text3); }
+.cat-counter { font-size: 13px; font-weight: 700; color: var(--green-text); min-height: 18px; margin-top: 14px; text-align: center; }
+
+/* Bottom */
+.btmbar { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 24px 28px; background: linear-gradient(to bottom, transparent, var(--surface) 28%); }
+.cta { width: 100%; padding: 17px; border: none; border-radius: var(--r); background: var(--green); color: white; font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; transition: all 0.15s; box-shadow: 0 4px 20px rgba(29,158,117,0.3); }
+.cta:hover { background: #178a63; transform: translateY(-1px); }
+.cta:active { transform: scale(0.98); }
+.cta.dim { opacity: 0.35; pointer-events: none; box-shadow: none; }
+.cta-ghost { width: 100%; padding: 12px; border: 1.5px solid var(--border2); border-radius: var(--r); background: transparent; color: var(--text2); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.15s; }
+.cta-ghost:hover { border-color: var(--green-mid); background: var(--green-light); color: var(--green-text); }
+
+/* Loading */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 450px; gap: 20px; }
+.spinner { width: 52px; height: 52px; border: 4px solid var(--green-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-title { font-size: 17px; font-weight: 800; color: var(--text); text-align: center; }
+.loading-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.lstep { font-size: 13px; color: var(--text3); display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
+.lstep.active { color: var(--green-dark); font-weight: 700; }
+.lstep.done { color: var(--green); }
+.lstep-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* Error */
+.error-wrap { background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--r); padding: 16px; margin-bottom: 16px; }
+.error-title { font-size: 14px; font-weight: 800; color: #991B1B; margin-bottom: 6px; }
+.error-msg { font-size: 13px; color: #7F1D1D; line-height: 1.5; }
+.error-hint { font-size: 12px; color: #9CA3AF; margin-top: 8px; font-family: monospace; }
+
+/* Result */
+.result-hero { height: 170px; border-radius: var(--r); margin-bottom: 16px; overflow: hidden; position: relative; background: #E6F1FB; }
+.result-eyebrow { font-size: 12px; font-weight: 800; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.result-name { font-size: 26px; font-weight: 900; color: var(--text); margin-bottom: 6px; line-height: 1.2; }
+.result-desc { font-size: 14px; color: var(--text2); margin-bottom: 14px; line-height: 1.5; }
+.rtags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.rtag { font-size: 11px; font-weight: 800; padding: 5px 11px; border-radius: 999px; }
+.rtag-g { background: var(--green-light); color: var(--green-dark); }
+.rtag-b { background: #E6F1FB; color: #0C447C; }
+.rtag-a { background: var(--amber-light); color: #92400E; }
+.rtag-p { background: #EEEDFE; color: #3C3489; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.sec-lbl { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.wrow { display: grid; grid-template-columns: repeat(4,1fr); background: var(--surface2); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 16px; }
+.wcell { padding: 11px 6px; text-align: center; display: flex; flex-direction: column; gap: 3px; }
+.wcell+.wcell { border-left: 1px solid var(--border); }
+.wi { font-size: 18px; }
+.wl { font-size: 10px; color: var(--text3); font-weight: 700; }
+.wv { font-size: 12px; font-weight: 800; color: var(--text); }
+.tl { display: flex; flex-direction: column; margin-bottom: 16px; }
+.tlr { display: flex; gap: 12px; }
+.tll { display: flex; flex-direction: column; align-items: center; width: 26px; flex-shrink: 0; }
+.tldot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; border: 2px solid white; box-shadow: 0 0 0 2px var(--green-mid); }
+.tlline { flex: 1; width: 2px; background: var(--green-mid); min-height: 16px; }
+.tltime { font-size: 11px; color: var(--text3); font-weight: 700; margin-bottom: 2px; }
+.tltxt { font-size: 14px; color: var(--text); font-weight: 700; margin-bottom: 14px; line-height: 1.35; }
+.alt-card { border: 1.5px solid var(--border2); border-radius: var(--r); padding: 13px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow); }
+.alt-card:hover { border-color: var(--green-mid); background: var(--green-light); }
+.alt-name { font-size: 14px; font-weight: 800; color: var(--text); }
+.alt-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.alt-arr { font-size: 18px; color: var(--text3); }
+
+/* Welcome */
+.welcome { text-align: center; padding: 28px 0 16px; }
+.wlogo { font-size: 56px; margin-bottom: 10px; display: block; }
+.wtitle { font-size: 30px; font-weight: 900; color: var(--text); }
+.wtagline { font-size: 15px; color: var(--text2); margin-top: 8px; line-height: 1.5; }
+.wchips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 20px 0 4px; }
+.wchip { background: var(--green-light); color: var(--green-dark); font-size: 12px; font-weight: 700; padding: 6px 13px; border-radius: 999px; }
+.wloc-hint { font-size: 13px; color: var(--text3); text-align: center; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* API key input */
+.apikey-wrap { background: var(--surface2); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 16px; margin-bottom: 20px; }
+.apikey-label { font-size: 12px; font-weight: 800; color: var(--text2); margin-bottom: 8px; display: block; }
+.apikey-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border2); border-radius: var(--r-sm); font-family: inherit; font-size: 13px; color: var(--text); background: var(--surface); outline: none; }
+.apikey-input:focus { border-color: var(--green); }
+.apikey-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="sbar">
+    <span class="sbar-time" id="clock">9:41</span>
+    <span class="sbar-r">📍 <span id="loc-short">Standort wird erkannt...</span></span>
+  </div>
+  <div class="hdr">
+    <button class="hdr-back" id="back-btn" style="visibility:hidden;" onclick="goBack()">← Zurück</button>
+    <span class="hdr-title" id="hdr-title">FamilyTrip AI</span>
+    <span class="hdr-step" id="hdr-step"></span>
+  </div>
+  <div class="content" id="content">
+
+    <!-- S0: Welcome -->
+    <div class="screen active" id="s0">
+      <div class="welcome">
+        <span class="wlogo">🗺️</span>
+        <div class="wtitle">FamilyTrip AI</div>
+        <div class="wtagline">Sag uns wie ihr drauf seid —<br>AI findet den perfekten Ausflug.</div>
+      </div>
+      <div class="wchips">
+        <span class="wchip">🏔️ 100+ Wanderungen</span>
+        <span class="wchip">🎢 Freizeitparks CH/D/A/IT/FR</span>
+        <span class="wchip">🕵️ Foxtrail & Escape Room</span>
+        <span class="wchip">🏊 Hallenbäder & Indoor</span>
+        <span class="wchip">⛵ Schiffausflüge</span>
+        <span class="wchip">🏰 Burgen & Schlösser</span>
+        <span class="wchip">⛳ Minigolf & Bouldern</span>
+        <span class="wchip">🛷 Schlitteln & Skifahren</span>
+        <span class="wchip">📅 2–3 Tages-Trips</span>
+      </div>
+      <div class="wloc-hint">
+        <span>📍</span>
+        <span id="loc-welcome">Standort wird erkannt...</span>
+      </div>
+
+
+    </div>
+
+    <!-- S1: Energie -->
+    <div class="screen" id="s1">
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:20%"></div></div></div>
+      <p class="q">Wie fit seid ihr heute?</p>
+      <p class="q-sub">Wir passen den Ausflug eurem Energielevel an.</p>
+      <div class="opt-list">
+        <button class="opt-btn" onclick="pickSingle(this,'s1')"><span class="o-icon">🛋️</span><span><span class="ol">Entspannt</span><span class="os">Ruhig, wenig Laufen, kein Stress</span></span></button>
+        <button class="opt-btn" onclick="pickSingle(this,'s1')"><span class="o-icon">🚶</span><span><span class="ol">Normal</span><span class="os">Etwas Bewegung ist ok</span></span></button>
+        <button class="opt-btn" onclick="pickSingle(this,'s1')"><span class="o-icon">⚡</span><span><span class="ol">Abenteuerlustig</span><span class="os">Wir wollen richtig was erleben!</span></span></button>
+      </div>
+    </div>
+
+    <!-- S2: Dauer -->
+    <div class="screen" id="s2">
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div></div>
+      <p class="q">Wie lange habt ihr?</p>
+      <p class="q-sub">Von spontan bis Kurzurlaub.</p>
+      <div class="dur-wrap">
+        <button class="dur-pill sel" onclick="pickDur(this,'1–2 Stunden','Kurzer Spontanausflug — Minigolf, kurze Wanderung, Badi, Spielplatz')">1–2h</button>
+        <button class="dur-pill" onclick="pickDur(this,'Halbtag','Zoo, Museum, Schiff, Kletterpark, Foxtrail')">Halbtag</button>
+        <button class="dur-pill" onclick="pickDur(this,'Ganztag','Freizeitpark, Skifahren, grosse Wanderung, Stadtausflug')">Ganztag</button>
+        <button class="dur-pill" onclick="pickDur(this,'2 Tage','Wochenendtrip mit Übernachtung — Europapark, Bergsee, Städtereise')">2 Tage</button>
+        <button class="dur-pill" onclick="pickDur(this,'3 Tage','Kurzurlaub — Freizeitpark D/A/IT/FR, Berghütte, Küste')">3 Tage</button>
+      </div>
+      <div class="dur-desc" id="dur-desc">
+        <p class="dur-desc-title">1–2 Stunden</p>
+        <p class="dur-desc-sub">Kurzer Spontanausflug — Minigolf, kurze Wanderung, Badi, Spielplatz</p>
+      </div>
+    </div>
+
+    <!-- S3: Filter -->
+    <div class="screen" id="s3">
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:60%"></div></div></div>
+      <p class="q">Eure Rahmenbedingungen</p>
+      <p class="q-sub">Damit der Vorschlag wirklich zu euch passt.</p>
+
+      <!-- Standort -->
+      <div class="loc-banner" id="loc-banner">
+        <span class="loc-icon">📍</span>
+        <div>
+          <div class="loc-text" id="loc-display">Standort wird erkannt...</div>
+          <div class="loc-sub" id="loc-sub">Ausflüge werden auf eure Region angepasst</div>
+        </div>
+        <button class="loc-btn" onclick="detectLocation()">Aktualisieren</button>
+      </div>
+
+      <div class="filter-section slider-wrap">
+        <div class="slider-row">
+          <span class="filter-label" style="margin:0;">🚗 Max. Fahrzeit</span>
+          <span class="slider-val" id="dist-val">60 min</span>
+        </div>
+        <input type="range" min="15" max="180" step="15" value="60" id="dist-slider" oninput="updateSlider(this)"/>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <span style="font-size:11px;color:var(--text3);">15 min</span>
+          <span style="font-size:11px;color:var(--text3);">3 Std.</span>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <span class="filter-label">🌤️ Indoor oder Outdoor?</span>
+        <div class="filter-row">
+          <button class="filter-chip" onclick="togChip(this,'io')">☀️ Nur Outdoor</button>
+          <button class="filter-chip" onclick="togChip(this,'io')">🏠 Nur Indoor</button>
+          <button class="filter-chip sel" onclick="togChip(this,'io')">🔀 Beides möglich</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <span class="filter-label">👶 Alter der Kinder</span>
+        <div class="age-chips">
+          <button class="age-chip" onclick="this.classList.toggle('sel')">0–3 J.</button>
+          <button class="age-chip" onclick="this.classList.toggle('sel')">4–6 J.</button>
+          <button class="age-chip" onclick="this.classList.toggle('sel')">7–10 J.</button>
+          <button class="age-chip" onclick="this.classList.toggle('sel')">11–14 J.</button>
+          <button class="age-chip" onclick="this.classList.toggle('sel')">Teenager</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <span class="filter-label">🌦️ Wetter heute</span>
+        <div class="filter-row">
+          <button class="filter-chip sel" onclick="togChip(this,'wetter')">☀️ Sonnig</button>
+          <button class="filter-chip" onclick="togChip(this,'wetter')">🌧️ Regen</button>
+          <button class="filter-chip" onclick="togChip(this,'wetter')">⛅ Bewölkt</button>
+          <button class="filter-chip" onclick="togChip(this,'wetter')">❄️ Schnee</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S4: Kategorien -->
+    <div class="screen" id="s4">
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:80%"></div></div></div>
+      <p class="q">Was habt ihr Lust?</p>
+      <p class="q-sub">Mehreres wählbar — oder alles offen lassen.</p>
+
+      <p class="grp-label">🌿 Natur & Bewegung</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🧍</span><span><span class="cl">Wandern</span><span class="cs">100+ Routen CH</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🚵</span><span><span class="cl">Velotour</span><span class="cs">Familienrouten, MTB</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🧗</span><span><span class="cl">Kletterpark</span><span class="cs">Seilpark, Bouldern</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🛷</span><span><span class="cl">Schlitteln</span><span class="cs">Rodelbahn, Winterpfad</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">⭐</span><span><span class="cl">Themenwege</span><span class="cs">Barfussweg, Märliwäg</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">⛷️</span><span><span class="cl">Skifahren</span><span class="cs">Piste, Schneeschuh</span></span></button>
+      </div>
+
+      <p class="grp-label">💧 Wasser & Baden</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏊</span><span><span class="cl">Freibad / Badi</span><span class="cs">See, Fluss, Badi</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏟️</span><span><span class="cl">Hallenbad</span><span class="cs">Wellness, Rutschbahn</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">⛵</span><span><span class="cl">Schiffausflug</span><span class="cs">Seen, Flüsse, Fähre</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">💧</span><span><span class="cl">Bach & Wasserfall</span><span class="cs">Naturpool, Tobel</span></span></button>
+      </div>
+
+      <p class="grp-label">🦁 Tiere & Natur</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🦍</span><span><span class="cl">Zoo</span><span class="cs">Zoo, Wildpark, Aquarium</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🐄</span><span><span class="cl">Bauernhof</span><span class="cs">Streichelzoo, Erlebnis</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🌿</span><span><span class="cl">Botanik</span><span class="cs">Garten, Naturschutz</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🦅</span><span><span class="cl">Vogelpark</span><span class="cs">Greifvögel, Falknerei</span></span></button>
+      </div>
+
+      <p class="grp-label">🏛️ Kultur & Wissen</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏛️</span><span><span class="cl">Museum</span><span class="cs">Technik, Geschichte</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🔬</span><span><span class="cl">Science Center</span><span class="cs">Technorama, Planeten</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏙️</span><span><span class="cl">Altstadt</span><span class="cs">Bern, Luzern, Stein a.R.</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏰</span><span><span class="cl">Schloss & Burg</span><span class="cs">Habsburg, Kyburg</span></span></button>
+      </div>
+
+      <p class="grp-label">🎢 Freizeitparks</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🇨🇭</span><span><span class="cl">Park CH</span><span class="cs">Conny-Land, Alpamare</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🇩🇪</span><span><span class="cl">Park D/A</span><span class="cs">Europapark, Legoland</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🇮🇹</span><span><span class="cl">Park IT/FR</span><span class="cs">Gardaland, Parc Astérix</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎠</span><span><span class="cl">2–3 Tage Trip</span><span class="cs">Mit Übernachtung</span></span></button>
+      </div>
+
+      <p class="grp-label">🎮 Spass & Action</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">⛳</span><span><span class="cl">Minigolf</span><span class="cs">Drinnen & draussen</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎯</span><span><span class="cl">Lasertag</span><span class="cs">Indoor Action, Team</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎳</span><span><span class="cl">Bowling</span><span class="cs">Klassisch, Kegelbahn</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🏹</span><span><span class="cl">Bogenschiessen</span><span class="cs">Outdoor & Indoor</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎮</span><span><span class="cl">Gaming & VR</span><span class="cs">Arcade, Virtual Reality</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🛹</span><span><span class="cl">Skatepark</span><span class="cs">Indoor Skate, Scooter</span></span></button>
+      </div>
+
+      <p class="grp-label">🕵️ Erlebnis & Rätsel</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🕵️</span><span><span class="cl">Foxtrail</span><span class="cs">Stadtabenteuer, Rätsel</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🔐</span><span><span class="cl">Escape Room</span><span class="cs">Indoor Rätsel, Team</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎭</span><span><span class="cl">Theater & Zirkus</span><span class="cs">Kindertheater, Show</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🌌</span><span><span class="cl">Planetarium</span><span class="cs">Sterne, Weltall</span></span></button>
+      </div>
+
+      <p class="grp-label">🏟️ Indoor Hallen</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🤸</span><span><span class="cl">Kinderhalle</span><span class="cs">Trampolin, Softplay</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🧱</span><span><span class="cl">Bouldern</span><span class="cs">Kletterhalle, Jugend</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🚂</span><span><span class="cl">Bahn & Seilbahn</span><span class="cs">Zahnrad, Bergbahn</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎨</span><span><span class="cl">Kreativ & Basteln</span><span class="cs">Workshop, Töpfern</span></span></button>
+      </div>
+
+      <p class="grp-label">😌 Gemütlich</p>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🍽️</span><span><span class="cl">Essen & Beizli</span><span class="cs">Bergrestaurant, Beiz</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎪</span><span><span class="cl">Märkte & Feste</span><span class="cs">Wochenmarkt, Events</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">🎬</span><span><span class="cl">Kino</span><span class="cs">Kinderfilm, Open Air</span></span></button>
+        <button class="cat-btn" onclick="togCat(this)"><span class="ci">📚</span><span><span class="cl">Bibliothek</span><span class="cs">Lesen, Vorlesen</span></span></button>
+      </div>
+
+      <div class="freetext-wrap">
+        <span class="freetext-label">✏️ Noch etwas Spezielles? (optional)</span>
+        <textarea class="freetext" id="freetext" rows="3" placeholder="z.B. unsere Tochter liebt Pferde, Sohn mag Züge, kein Stadtverkehr..."></textarea>
+      </div>
+      <p class="cat-counter" id="cat-counter"></p>
+    </div>
+
+    <!-- S5: Loading -->
+    <div class="screen" id="s5">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <p class="loading-title">AI sucht euren Ausflug...</p>
+        <div class="loading-steps">
+          <div class="lstep active" id="ls1"><div class="lstep-dot"></div>Standort & Filter werden gelesen</div>
+          <div class="lstep" id="ls2"><div class="lstep-dot"></div>Passende Ziele werden gesucht</div>
+          <div class="lstep" id="ls3"><div class="lstep-dot"></div>Tagesplan wird erstellt</div>
+          <div class="lstep" id="ls4"><div class="lstep-dot"></div>Alternativen werden berechnet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S6: Result -->
+    <div class="screen" id="s6">
+      <div class="result-hero">
+        <svg width="100%" height="170" viewBox="0 0 390 170" xmlns="http://www.w3.org/2000/svg" id="hero-svg">
+          <rect width="390" height="170" fill="#E6F1FB"/>
+          <polygon points="0,170 100,50 200,170" fill="#B5D4F4"/>
+          <polygon points="80,170 200,12 330,170" fill="#85B7EB"/>
+          <polygon points="200,12 238,62 162,62" fill="white"/>
+          <polygon points="240,170 320,65 390,170" fill="#B5D4F4"/>
+          <polygon points="320,65 348,95 292,95" fill="white"/>
+          <line x1="165" y1="70" x2="222" y2="155" stroke="white" stroke-width="3" opacity="0.6"/>
+          <line x1="192" y1="65" x2="248" y2="150" stroke="white" stroke-width="3" opacity="0.5"/>
+          <rect x="0" y="140" width="390" height="30" fill="#9FE1CB" opacity="0.3"/>
+          <text x="16" y="160" font-family="sans-serif" font-size="12" font-weight="bold" fill="#085041" id="hero-location-text">Schweiz & Umgebung</text>
+        </svg>
+      </div>
+      <p class="result-eyebrow" id="r-eyebrow">Ausflug</p>
+      <p class="result-name" id="r-name"></p>
+      <p class="result-desc" id="r-desc"></p>
+      <div class="rtags" id="r-tags"></div>
+      <div class="wrow" id="r-wrow">
+        <div class="wcell"><span class="wi">🌤️</span><span class="wl">Wetter</span><span class="wv" id="w1v">—</span></div>
+        <div class="wcell"><span class="wi">🕐</span><span class="wl">Fahrzeit</span><span class="wv" id="w2v">—</span></div>
+        <div class="wcell"><span class="wi">💰</span><span class="wl">Kosten</span><span class="wv" id="w3v">—</span></div>
+        <div class="wcell"><span class="wi">👶</span><span class="wl">Alter</span><span class="wv" id="w4v">—</span></div>
+      </div>
+      <div id="r-body"></div>
+    </div>
+
+  </div><!-- end content -->
+
+  <div class="btmbar">
+    <button class="cta" id="main-cta" onclick="ctaClick()">Ausflug planen →</button>
+    <button class="cta-ghost" id="ghost-cta" style="display:none;" onclick="newTrip()">🔄 Andere Idee generieren</button>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────
+var state = {
+  step: 0,
+  apiKey: '',
+  energie: '',
+  dauer: '1–2 Stunden',
+  maxFahrzeit: 60,
+  indoorOutdoor: 'Beides möglich',
+  alter: [],
+  wetter: 'Sonnig',
+  kategorien: [],
+  freitext: '',
+  location: null,
+  locationName: 'Schweiz'
+};
+
+// ── Clock ─────────────────────────────────────────────────────────
+function updateClock() {
+  var now = new Date();
+  document.getElementById('clock').textContent =
+    now.getHours().toString().padStart(2,'0') + ':' +
+    now.getMinutes().toString().padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ── API Key ───────────────────────────────────────────────────────
+function saveKey(val) {
+  state.apiKey = val.trim();
+  try { localStorage.setItem('ft_apikey', state.apiKey); } catch(e){}
+}
+(function loadKey() {
+  try {
+    var k = localStorage.getItem('ft_apikey');
+    if (k) { state.apiKey = k; document.getElementById('apikey-input').value = k; }
+  } catch(e){}
+})();
+
+// ── Location ──────────────────────────────────────────────────────
+function detectLocation() {
+  document.getElementById('loc-display').textContent = 'Wird erkannt...';
+  document.getElementById('loc-welcome').textContent = 'Standort wird erkannt...';
+  document.getElementById('loc-short').textContent = '...';
+
+  if (!navigator.geolocation) {
+    setLocationFallback();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      state.location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+    },
+    function() { setLocationFallback(); },
+    { timeout: 8000, maximumAge: 300000 }
+  );
+}
+
+function reverseGeocode(lat, lng) {
+  fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&accept-language=de')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var addr = d.address || {};
+      var city = addr.city || addr.town || addr.village || addr.county || '';
+      var country = addr.country || '';
+      var state_region = addr.state || '';
+      var name = city ? city + ', ' + country : country;
+      state.locationName = name || 'Unbekannt';
+      state.location.city = city;
+      state.location.country = country;
+      state.location.state_region = state_region;
+      setLocationDisplay(name);
+    })
+    .catch(function() {
+      // Use coordinates if reverse geocoding fails
+      state.locationName = lat.toFixed(2) + '°N, ' + lng.toFixed(2) + '°E';
+      setLocationDisplay(state.locationName);
+    });
+}
+
+function setLocationDisplay(name) {
+  document.getElementById('loc-display').textContent = '📍 ' + name;
+  document.getElementById('loc-welcome').textContent = '📍 Ausflüge rund um ' + name;
+  document.getElementById('loc-short').textContent = name;
+  document.getElementById('hero-location-text').textContent = name + ' & Umgebung';
+}
+
+function setLocationFallback() {
+  state.locationName = 'Zürich, Schweiz';
+  setLocationDisplay('Zürich, Schweiz (Standard)');
+  document.getElementById('loc-sub').textContent = 'Standort nicht verfügbar — Standard verwendet';
+}
+
+detectLocation();
+
+// ── Navigation ────────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('s'+n).classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+  state.step = n;
+  updateHdr(n);
+  updateCTA(n);
+}
+
+function updateHdr(n) {
+  var titles = ['FamilyTrip AI','Energie','Reisedauer','Filter & Standort','Aktivität','Suche...','Euer Ausflug'];
+  var steps  = ['','1 / 4','2 / 4','3 / 4','4 / 4','',''];
+  document.getElementById('hdr-title').textContent = titles[n] || '';
+  document.getElementById('hdr-step').textContent = steps[n] || '';
+  document.getElementById('back-btn').style.visibility = (n > 0 && n < 5) ? 'visible' : 'hidden';
+}
+
+function updateCTA(n) {
+  var cta = document.getElementById('main-cta');
+  var ghost = document.getElementById('ghost-cta');
+  cta.style.display = 'block';
+  ghost.style.display = 'none';
+  if (n === 0) { cta.textContent = 'Ausflug planen →'; cta.classList.remove('dim'); }
+  else if (n === 1) { cta.textContent = 'Weiter →'; cta.classList.add('dim'); }
+  else if (n === 2) { cta.textContent = 'Weiter →'; cta.classList.remove('dim'); }
+  else if (n === 3) { cta.textContent = 'Weiter →'; cta.classList.remove('dim'); }
+  else if (n === 4) { cta.textContent = '✨ AI Ausflug finden'; cta.classList.remove('dim'); }
+  else if (n === 5) { cta.style.display = 'none'; }
+  else if (n === 6) { cta.textContent = '🗺️ Los geht\'s!'; cta.classList.remove('dim'); ghost.style.display = 'block'; }
+}
+
+function goBack() {
+  if (state.step > 0 && state.step < 5) goStep(state.step - 1);
+}
+
+function ctaClick() {
+  if (state.step === 4) { fetchAI(); }
+  else if (state.step < 6) { goStep(state.step + 1); }
+}
+
+function newTrip() { goStep(4); }
+
+// ── Input handlers ─────────────────────────────────────────────────
+function pickSingle(btn, sid) {
+  document.querySelectorAll('#'+sid+' .opt-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  state.energie = btn.querySelector('.ol').textContent;
+  document.getElementById('main-cta').classList.remove('dim');
+}
+
+function pickDur(btn, label, desc) {
+  document.querySelectorAll('.dur-pill').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  state.dauer = label;
+  document.getElementById('dur-desc').innerHTML =
+    '<p class="dur-desc-title">'+label+'</p><p class="dur-desc-sub">'+desc+'</p>';
+}
+
+function togChip(btn, group) {
+  document.querySelectorAll('.filter-chip[onclick*="\''+group+'\'"]').forEach(function(c){ c.classList.remove('sel'); });
+  btn.classList.add('sel');
+  if (group === 'io') state.indoorOutdoor = btn.textContent.trim();
+  if (group === 'wetter') state.wetter = btn.textContent.trim();
+}
+
+function updateSlider(el) {
+  state.maxFahrzeit = parseInt(el.value);
+  document.getElementById('dist-val').textContent = el.value + ' min';
+  var pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.background = 'linear-gradient(to right, var(--green) '+pct+'%, #ddd '+pct+'%)';
+}
+
+function togCat(btn) {
+  btn.classList.toggle('sel');
+  state.kategorien = Array.from(document.querySelectorAll('.cat-btn.sel')).map(function(b){ return b.querySelector('.cl').textContent; });
+  var n = state.kategorien.length;
+  document.getElementById('cat-counter').textContent = n === 0
+    ? 'Keine Auswahl — AI überrascht euch mit lokalen Ideen'
+    : n + ' Kategorie'+(n>1?'n':'')+' gewählt';
+}
+
+// ── Loading animation ──────────────────────────────────────────────
+function animateLoading() {
+  var steps = ['ls1','ls2','ls3','ls4'];
+  var i = 0;
+  steps.forEach(function(id){ document.getElementById(id).className='lstep'; });
+  document.getElementById(steps[0]).className='lstep active';
+  var iv = setInterval(function(){
+    if (i < steps.length - 1) {
+      document.getElementById(steps[i]).className='lstep done';
+      i++;
+      document.getElementById(steps[i]).className='lstep active';
+    } else {
+      clearInterval(iv);
+    }
+  }, 900);
+}
+
+// ── AI Fetch ───────────────────────────────────────────────────────
+async function fetchAI() {
+  state.alter = Array.from(document.querySelectorAll('.age-chip.sel')).map(function(c){ return c.textContent; });
+  state.freitext = document.getElementById('freetext').value.trim();
+
+  goStep(5);
+  animateLoading();
+
+  var kat = state.kategorien.length > 0 ? state.kategorien.join(', ') : 'beliebig — überrasche uns mit lokalen Highlights';
+  var alter = state.alter.length > 0 ? state.alter.join(', ') : 'nicht angegeben';
+  var locInfo = state.location
+    ? 'Aktueller Standort: ' + state.locationName + ' (GPS: ' + state.location.lat.toFixed(3) + ', ' + state.location.lng.toFixed(3) + ')'
+    : 'Standort: ' + state.locationName;
+
+  var prompt = `Schlage einen konkreten Familienausflug vor basierend auf diesen Angaben:
+
+${locInfo}
+Max. Fahrzeit: ${state.maxFahrzeit} Minuten vom aktuellen Standort
+Energie/Stimmung: ${state.energie || 'Normal'}
+Reisedauer: ${state.dauer}
+Indoor/Outdoor: ${state.indoorOutdoor}
+Alter der Kinder: ${alter}
+Wetter: ${state.wetter}
+Gewünschte Aktivitäten: ${kat}
+Spezielles: ${state.freitext || 'nichts'}
+
+WICHTIG: Schlage echte, real existierende Orte vor die vom angegebenen Standort innerhalb der Fahrzeit erreichbar sind. Wenn die Familie in Südfrankreich ist, schlage Ausflüge in Südfrankreich vor. Wenn sie in Thalwil/Zürich sind, schlage Schweizer Ausflüge vor. Sei immer standortspezifisch.`;
+
+  var systemPrompt = `Du bist ein Familienausflug-Experte der weltweit echte, standortspezifische Ausflugsziele kennt. Antworte NUR mit einem JSON-Objekt ohne Markdown-Backticks.
+
+Format:
+{
+  "name": "Konkreter Ortsname",
+  "kategorie": "Emoji Kategoriename",
+  "beschreibung": "2-3 Sätze warum dieser Ausflug perfekt passt und was ihn besonders macht",
+  "tags": ["tag1","tag2","tag3","tag4"],
+  "wetter": "passendes Wetter",
+  "fahrzeit": "z.B. 25 min ab Zürich",
+  "kosten": "z.B. Gratis oder CHF 20-40 oder EUR 15-30",
+  "altersempfehlung": "z.B. ab 4 Jahren",
+  "tagesplan": [
+    {"zeit":"09:00","text":"..."},
+    {"zeit":"11:00","text":"..."},
+    {"zeit":"13:00","text":"..."},
+    {"zeit":"15:00","text":"..."},
+    {"zeit":"17:00","text":"..."}
+  ],
+  "alternativen": [
+    {"name":"Alternative 1","beschreibung":"kurze Beschreibung warum interessant"},
+    {"name":"Alternative 2","beschreibung":"kurze Beschreibung warum interessant"},
+    {"name":"Alternative 3","beschreibung":"kurze Beschreibung warum interessant"},
+    {"name":"Alternative 4","beschreibung":"kurze Beschreibung warum interessant"}
+  ],
+  "tipp": "Ein konkreter Insider-Tipp für diesen Ort"
+}`;
+
+  try {
+    if (!state.apiKey) { showError('API Key fehlt', 'Bitte trage deinen Anthropic API Key oben ein.', ''); return; }
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      var err = await res.json().catch(function(){ return {}; });
+      var msg = (err.error && err.error.message) ? err.error.message : 'HTTP ' + res.status;
+      throw new Error(msg);
+    }
+
+    var data = await res.json();
+    var raw = data.content.filter(function(i){ return i.type==='text'; }).map(function(i){ return i.text; }).join('');
+    raw = raw.replace(/```json|```/g,'').trim();
+
+    var trip = JSON.parse(raw);
+    renderResult(trip);
+
+  } catch(e) {
+    showError(
+      'Verbindungsfehler',
+      'Die AI konnte nicht erreicht werden. Bitte API Key prüfen.',
+      e.message
+    );
+  }
+}
+
+
+async function fetchAIForAlt(altJson) {
+  var alt = JSON.parse(altJson);
+  goStep(5);
+  animateLoading();
+
+  var locInfo = state.location
+    ? 'Aktueller Standort: ' + state.locationName + ' (GPS: ' + state.location.lat.toFixed(3) + ', ' + state.location.lng.toFixed(3) + ')'
+    : 'Standort: ' + state.locationName;
+
+  var prompt = 'Erstelle einen detaillierten Familienausflug für: ' + alt.name + '\n\n' + locInfo + '\nMax. Fahrzeit: ' + state.maxFahrzeit + ' Minuten\nEnergie: ' + (state.energie||'Normal') + '\nDauer: ' + state.dauer + '\nAlter der Kinder: ' + (state.alter||[]).join(', ') + '\n\nWICHTIG: Schlage den Ort ' + alt.name + ' als Hauptziel vor. Sei konkret und standortspezifisch.';
+
+  var systemPrompt = `Du bist ein Familienausflug-Experte. Antworte NUR mit einem JSON-Objekt ohne Markdown-Backticks.
+
+Format:
+{
+  "name": "` + alt.name + `",
+  "kategorie": "Emoji Kategoriename",
+  "beschreibung": "2-3 Sätze warum dieser Ausflug perfekt passt",
+  "tags": ["tag1","tag2","tag3"],
+  "wetter": "passendes Wetter",
+  "fahrzeit": "Fahrzeit vom Standort",
+  "kosten": "Kosten",
+  "altersempfehlung": "Altersempfehlung",
+  "tagesplan": [
+    {"zeit":"09:00","text":"..."},
+    {"zeit":"11:00","text":"..."},
+    {"zeit":"13:00","text":"..."},
+    {"zeit":"15:00","text":"..."},
+    {"zeit":"17:00","text":"..."}
+  ],
+  "alternativen": [
+    {"name":"Alternative 1","beschreibung":"kurze Beschreibung"},
+    {"name":"Alternative 2","beschreibung":"kurze Beschreibung"},
+    {"name":"Alternative 3","beschreibung":"kurze Beschreibung"},
+    {"name":"Alternative 4","beschreibung":"kurze Beschreibung"}
+  ],
+  "tipp": "Insider-Tipp für diesen Ort"
+}`;
+
+  try {
+    if (!state.apiKey) { showError('API Key fehlt', 'Bitte trage deinen Anthropic API Key oben ein.', ''); return; }
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var raw = data.content.filter(function(i){ return i.type==='text'; }).map(function(i){ return i.text; }).join('');
+    raw = raw.replace(/```json|```/g,'').trim();
+    renderResult(JSON.parse(raw));
+  } catch(e) {
+    showError('Verbindungsfehler', 'Die AI konnte nicht erreicht werden.', e.message);
+  }
+}
+
+function showError(title, msg, detail) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('s6').classList.add('active');
+  document.getElementById('main-cta').style.display = 'block';
+  document.getElementById('main-cta').textContent = '🔄 Nochmal versuchen';
+  document.getElementById('main-cta').onclick = function(){ goStep(4); };
+  document.getElementById('ghost-cta').style.display = 'block';
+  document.getElementById('ghost-cta').textContent = '← Zurück zu Schritt 1';
+  document.getElementById('ghost-cta').onclick = function(){ goStep(0); };
+
+  document.getElementById('r-eyebrow').textContent = '⚠️ Fehler';
+  document.getElementById('r-name').textContent = title;
+  document.getElementById('r-desc').textContent = '';
+  document.getElementById('r-tags').innerHTML = '';
+  document.getElementById('r-wrow').style.display = 'none';
+  document.getElementById('r-body').innerHTML =
+    '<div class="error-wrap"><p class="error-title">'+title+'</p><p class="error-msg">'+msg.replace(/\n/g,'<br/>')+'</p>'+(detail?'<p class="error-hint">'+detail+'</p>':'')+'</div>';
+}
+
+function renderResult(trip) {
+  document.getElementById('r-eyebrow').textContent = trip.kategorie || '🗺️ Ausflug';
+  document.getElementById('r-name').textContent = trip.name || '';
+  document.getElementById('r-desc').textContent = trip.beschreibung || '';
+  document.getElementById('hero-location-text').textContent = (trip.name || state.locationName) + ' & Umgebung';
+
+  var tagColors = ['rtag-g','rtag-b','rtag-a','rtag-p'];
+  document.getElementById('r-tags').innerHTML = (trip.tags||[]).map(function(t,i){
+    return '<span class="rtag '+tagColors[i%4]+'">'+t+'</span>';
+  }).join('');
+
+  document.getElementById('r-wrow').style.display = 'grid';
+  document.getElementById('w1v').textContent = trip.wetter || state.wetter;
+  document.getElementById('w2v').textContent = trip.fahrzeit || '—';
+  document.getElementById('w3v').textContent = trip.kosten || '—';
+  document.getElementById('w4v').textContent = trip.altersempfehlung || '—';
+
+  var tlHtml = '<hr class="divider"/><p class="sec-lbl">Tagesplan</p><div class="tl">';
+  (trip.tagesplan||[]).forEach(function(item, i, arr){
+    var last = i === arr.length - 1;
+    tlHtml += '<div class="tlr"><div class="tll"><div class="tldot"></div>'+(last?'':'<div class="tlline"></div>')+'</div><div><p class="tltime">'+item.zeit+'</p><p class="tltxt">'+item.text+'</p></div></div>';
+  });
+  tlHtml += '</div>';
+
+  if (trip.tipp) {
+    tlHtml += '<div style="background:var(--amber-light);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px;"><p style="font-size:12px;font-weight:800;color:#92400E;margin-bottom:3px;">💡 Insider-Tipp</p><p style="font-size:13px;color:#78350F;line-height:1.4;">'+trip.tipp+'</p></div>';
+  }
+
+  if ((trip.alternativen||[]).length) {
+    tlHtml += '<hr class="divider"/><p class="sec-lbl">Weitere Optionen</p>';
+    trip.alternativen.forEach(function(alt){
+      var altData = encodeURIComponent(JSON.stringify(alt)); tlHtml += '<div class="alt-card" onclick="fetchAIForAlt(decodeURIComponent(\'' + altData + '\'))"><div><p class="alt-name">'+alt.name+'</p><p class="alt-sub">'+alt.beschreibung+'</p></div><span class="alt-arr" style="color:var(--green-mid)">›</span></div>';
+    });
+  }
+
+  document.getElementById('r-body').innerHTML = tlHtml;
+  goStep(6);
+}
+
+// Init
+updateHdr(0);
+updateCTA(0);
+</script>
+</body>
+</html>
