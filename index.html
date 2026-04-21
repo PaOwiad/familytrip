@@ -239,6 +239,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px;
         <span id="loc-welcome">Standort wird erkannt...</span>
       </div>
 
+      <div class="apikey-wrap">
+        <label class="apikey-label">🔑 Anthropic API Key</label>
+        <input class="apikey-input" id="apikey-input" type="password" placeholder="sk-ant-api03-..." oninput="setApiKey(this.value)" autocomplete="off"/>
+        <p class="apikey-hint">Wird lokal gespeichert. Key unter <strong>console.anthropic.com</strong> → API Keys erstellen.</p>
+      </div>
+
 
     </div>
 
